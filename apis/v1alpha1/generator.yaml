@@ -1,5 +1,53 @@
 ignore:
   resource_names:
-      - AccessPoint
-      - FileSystem
-      - MountTarget
+    - AccessPoint
+    - FileSystem
+    - MountTarget
+resources:
+  MountPointTarget:
+    fields:
+      MountPointTargetId:
+        is_primary_key: true
+        is_read_only: true
+      MountPointArn:
+        is_immutable: true
+        references:
+          resource: MountPoint
+          path: Status.ACKResourceMetadata.ARN
+      SubnetId:
+        is_immutable: true
+        references:
+          resource: Subnet
+          service_name: ec2
+          path: Status.SubnetID
+      SecurityGroupIds:
+        references:
+          resource: SecurityGroup
+          service_name: ec2
+          path: Status.ID
+      IpAddress:
+        is_read_only: true
+      AvailabilityZoneId:
+        is_read_only: true
+      AvailabilityZone:
+        is_read_only: true
+      Status:
+        is_read_only: true
+      StatusMessage:
+        is_read_only: true
+      VpcId:
+        is_read_only: true
+      NetworkInterfaceId:
+        is_read_only: true
+      OwnerId:
+        is_read_only: true
+    exceptions:
+      errors:
+        404:
+          code: ResourceNotFoundException
+      terminal_codes:
+        - ValidationException
+        - AccessDeniedException
+        - ConflictException
+    tags:
+      ignore: true
