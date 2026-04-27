@@ -1,12 +1,16 @@
 ignore:
   resource_names:
     - AccessPoint
-    - MountTarget
   field_paths:
     # ClientToken is an idempotency token auto-filled by the AWS SDK
     # when nil. Not exposed to users.
     - CreateFileSystemInput.ClientToken
     - CreateFileSystemOutput.ClientToken
+    # The CreateMountTarget API response includes a top-level "Status"
+    # field containing LifeCycleState. This conflicts with the Kubernetes
+    # Status subresource. We ignore this path and instead source
+    # LifeCycleState via from.operation/from.path on the GetMountTarget API.
+    - CreateMountTargetOutput.Status
 
 resources:
   FileSystem:
@@ -89,3 +93,70 @@ resources:
     hooks:
       sdk_read_one_post_set_output:
         template_path: hooks/file_system/sdk_read_one_post_set_output.go.tpl
+  MountTarget:
+    tags:
+      ignore: true
+    synced:
+      when:
+        - path: Status.LifeCycleState
+          in:
+            - available
+    exceptions:
+      errors:
+        404:
+          code: ResourceNotFoundException
+      terminal_codes:
+        - ValidationException
+        - ConflictException
+        - AccessDeniedException
+    print:
+      order_by: index
+      additional_columns:
+        - name: MOUNTTARGETID
+          json_path: .status.mountTargetID
+          type: string
+          index: 0
+        - name: FILESYSTEMID
+          json_path: .spec.fileSystemID
+          type: string
+          index: 1
+        - name: LIFECYCLE
+          json_path: .status.lifeCycleState
+          type: string
+          index: 2
+    fields:
+      # --- Status fields ---
+      # LifeCycleState: the raw "Status" field from the API is ignored
+      # (conflicts with K8s Status subresource). We populate this field
+      # manually in the sdk_read_one_post_set_output hook template by
+      # reading resp.Status from the GetMountTarget response.
+      LifeCycleState:
+        is_read_only: true
+        type: "*string"
+      # --- Immutable spec fields (set at creation, cannot change) ---
+      FileSystemId:
+        is_immutable: true
+        references:
+          resource: FileSystem
+          path: Status.FileSystemID
+      SubnetId:
+        is_immutable: true
+        references:
+          resource: Subnet
+          service_name: ec2
+          path: Status.SubnetID
+      Ipv4Address:
+        is_immutable: true
+      Ipv6Address:
+        is_immutable: true
+      IpAddressType:
+        is_immutable: true
+      # --- Mutable spec fields ---
+      SecurityGroups:
+        references:
+          resource: SecurityGroup
+          service_name: ec2
+          path: Status.ID
+    hooks:
+      sdk_read_one_post_set_output:
+        template_path: hooks/mount_target/sdk_read_one_post_set_output.go.tpl
