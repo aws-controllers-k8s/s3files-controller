@@ -111,9 +111,9 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.IPv6Address = nil
 	}
 	if resp.MountTargetId != nil {
-		ko.Status.MountTargetID = resp.MountTargetId
+		ko.Status.ID = resp.MountTargetId
 	} else {
-		ko.Status.MountTargetID = nil
+		ko.Status.ID = nil
 	}
 	if resp.NetworkInterfaceId != nil {
 		ko.Status.NetworkInterfaceID = resp.NetworkInterfaceId
@@ -156,16 +156,15 @@ func (rm *resourceManager) sdkFind(
 	// --- Terminal condition on error lifecycle state ---
 	// The synced.when config handles setting Synced=False for non-available
 	// states, but it does not set ACK.Terminal for the "error" lifecycle
-	// state. The error state is unrecoverable — the user must delete and
-	// recreate the resource.
+	// state. This hook sets Terminal=True when the mount target is in error
+	// state. The runtime's resetConditions clears all conditions at the
+	// start of each reconciliation, so no explicit False-setting is needed.
 	if ko.Status.Status != nil && *ko.Status.Status == "error" {
 		msg := "MountTarget is in error state"
 		if ko.Status.StatusMessage != nil {
 			msg = *ko.Status.StatusMessage
 		}
 		ackcondition.SetTerminal(&resource{ko}, corev1.ConditionTrue, &msg, nil)
-	} else {
-		ackcondition.SetTerminal(&resource{ko}, corev1.ConditionFalse, nil, nil)
 	}
 
 	return &resource{ko}, nil
@@ -177,7 +176,7 @@ func (rm *resourceManager) sdkFind(
 func (rm *resourceManager) requiredFieldsMissingFromReadOneInput(
 	r *resource,
 ) bool {
-	return r.ko.Status.MountTargetID == nil
+	return r.ko.Status.ID == nil
 
 }
 
@@ -188,8 +187,8 @@ func (rm *resourceManager) newDescribeRequestPayload(
 ) (*svcsdk.GetMountTargetInput, error) {
 	res := &svcsdk.GetMountTargetInput{}
 
-	if r.ko.Status.MountTargetID != nil {
-		res.MountTargetId = r.ko.Status.MountTargetID
+	if r.ko.Status.ID != nil {
+		res.MountTargetId = r.ko.Status.ID
 	}
 
 	return res, nil
@@ -244,9 +243,9 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.IPv6Address = nil
 	}
 	if resp.MountTargetId != nil {
-		ko.Status.MountTargetID = resp.MountTargetId
+		ko.Status.ID = resp.MountTargetId
 	} else {
-		ko.Status.MountTargetID = nil
+		ko.Status.ID = nil
 	}
 	if resp.NetworkInterfaceId != nil {
 		ko.Status.NetworkInterfaceID = resp.NetworkInterfaceId
@@ -368,9 +367,9 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.IPv6Address = nil
 	}
 	if resp.MountTargetId != nil {
-		ko.Status.MountTargetID = resp.MountTargetId
+		ko.Status.ID = resp.MountTargetId
 	} else {
-		ko.Status.MountTargetID = nil
+		ko.Status.ID = nil
 	}
 	if resp.NetworkInterfaceId != nil {
 		ko.Status.NetworkInterfaceID = resp.NetworkInterfaceId
@@ -421,8 +420,8 @@ func (rm *resourceManager) newUpdateRequestPayload(
 ) (*svcsdk.UpdateMountTargetInput, error) {
 	res := &svcsdk.UpdateMountTargetInput{}
 
-	if r.ko.Status.MountTargetID != nil {
-		res.MountTargetId = r.ko.Status.MountTargetID
+	if r.ko.Status.ID != nil {
+		res.MountTargetId = r.ko.Status.ID
 	}
 	if r.ko.Spec.SecurityGroups != nil {
 		res.SecurityGroups = aws.ToStringSlice(r.ko.Spec.SecurityGroups)
@@ -459,8 +458,8 @@ func (rm *resourceManager) newDeleteRequestPayload(
 ) (*svcsdk.DeleteMountTargetInput, error) {
 	res := &svcsdk.DeleteMountTargetInput{}
 
-	if r.ko.Status.MountTargetID != nil {
-		res.MountTargetId = r.ko.Status.MountTargetID
+	if r.ko.Status.ID != nil {
+		res.MountTargetId = r.ko.Status.ID
 	}
 
 	return res, nil
@@ -574,8 +573,7 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch terminalErr.ErrorCode() {
-	case "ValidationException",
-		"ConflictException":
+	case "ValidationException":
 		return true
 	default:
 		return false

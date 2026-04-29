@@ -615,8 +615,8 @@ func (in *MountTargetStatus) DeepCopyInto(out *MountTargetStatus) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.MountTargetID != nil {
-		in, out := &in.MountTargetID, &out.MountTargetID
+	if in.ID != nil {
+		in, out := &in.ID, &out.ID
 		*out = new(string)
 		**out = **in
 	}

@@ -90,6 +90,9 @@ resources:
       sdk_read_one_post_set_output:
         template_path: hooks/file_system/sdk_read_one_post_set_output.go.tpl
   MountTarget:
+    # S3 Files TagResource/UntagResource only support file systems and access
+    # points. MountTarget is not a taggable resource.
+    # https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-tagging.html
     tags:
       ignore: true
     synced:
@@ -103,12 +106,11 @@ resources:
           code: ResourceNotFoundException
       terminal_codes:
         - ValidationException
-        - ConflictException
     print:
       order_by: index
       additional_columns:
-        - name: MOUNTTARGETID
-          json_path: .status.mountTargetID
+        - name: ID
+          json_path: .status.id
           type: string
           index: 0
         - name: STATUS
@@ -116,6 +118,9 @@ resources:
           type: string
           index: 1
     fields:
+      # ID is the renamed MountTargetId — primary key for Get/Update/Delete
+      ID:
+        is_primary_key: true
       # --- Spec fields with cross-resource references ---
       FileSystemId:
         references:
@@ -131,6 +136,20 @@ resources:
           resource: SecurityGroup
           service_name: ec2
           path: Status.ID
+    renames:
+      operations:
+        CreateMountTarget:
+          input_fields:
+            MountTargetId: ID
+        GetMountTarget:
+          input_fields:
+            MountTargetId: ID
+        UpdateMountTarget:
+          input_fields:
+            MountTargetId: ID
+        DeleteMountTarget:
+          input_fields:
+            MountTargetId: ID
     hooks:
       sdk_read_one_post_set_output:
         template_path: hooks/mount_target/sdk_read_one_post_set_output.go.tpl

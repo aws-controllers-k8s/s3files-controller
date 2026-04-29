@@ -15,8 +15,8 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.mountTargetID
-      name: MOUNTTARGETID
+    - jsonPath: .status.id
+      name: ID
       type: string
     - jsonPath: .status.status
       name: STATUS
@@ -225,7 +225,7 @@ spec:
                   - type
                   type: object
                 type: array
-              mountTargetID:
+              id:
                 description: |-
                   The ID of the mount target, assigned by S3 Files. This ID is used to reference
                   the mount target in subsequent API calls.

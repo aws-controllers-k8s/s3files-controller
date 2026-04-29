@@ -69,7 +69,7 @@ def _create_mount_target_file_system(bucket_arn: str, role_arn: str) -> str:
     """Create an S3 Files FileSystem and return its ID."""
     s3files = boto3.client("s3files")
     resp = s3files.create_file_system(
-        bucketArn=bucket_arn,
+        bucket=bucket_arn,
         roleArn=role_arn,
     )
     fs_id = resp["fileSystemId"]
@@ -111,7 +111,7 @@ def service_bootstrap() -> Resources:
         ),
         MountTargetVPC=VPC(
             name_prefix="ack-s3files-mt-vpc",
-            num_public_subnet=1,
+            num_public_subnet=3,
             num_private_subnet=0,
         ),
     )

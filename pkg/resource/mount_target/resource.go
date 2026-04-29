@@ -90,18 +90,18 @@ func (r *resource) SetIdentifiers(identifier *ackv1alpha1.AWSIdentifiers) error 
 	if identifier.NameOrID == "" {
 		return ackerrors.MissingNameIdentifier
 	}
-	r.ko.Status.MountTargetID = &identifier.NameOrID
+	r.ko.Status.ID = &identifier.NameOrID
 
 	return nil
 }
 
 // PopulateResourceFromAnnotation populates the fields passed from adoption annotation
 func (r *resource) PopulateResourceFromAnnotation(fields map[string]string) error {
-	f0, ok := fields["mountTargetID"]
+	primaryKey, ok := fields["id"]
 	if !ok {
-		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: mountTargetID"))
+		return ackerrors.NewTerminalError(fmt.Errorf("required field missing: id"))
 	}
-	r.ko.Status.MountTargetID = &f0
+	r.ko.Status.ID = &primaryKey
 
 	return nil
 }

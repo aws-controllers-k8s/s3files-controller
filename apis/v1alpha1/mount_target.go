@@ -86,7 +86,7 @@ type MountTargetStatus struct {
 	//
 	// Regex Pattern: `^fsmt-[0-9a-f]{17,40}$`
 	// +kubebuilder:validation:Optional
-	MountTargetID *string `json:"mountTargetID,omitempty"`
+	ID *string `json:"id,omitempty"`
 	// The ID of the network interface that S3 Files created when it created the
 	// mount target. This network interface is managed by the service.
 	// +kubebuilder:validation:Optional
@@ -115,7 +115,7 @@ type MountTargetStatus struct {
 // MountTarget is the Schema for the MountTargets API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="MOUNTTARGETID",type=string,priority=0,JSONPath=`.status.mountTargetID`
+// +kubebuilder:printcolumn:name="ID",type=string,priority=0,JSONPath=`.status.id`
 // +kubebuilder:printcolumn:name="STATUS",type=string,priority=0,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Synced",type="string",priority=0,JSONPath=".status.conditions[?(@.type==\"ACK.ResourceSynced\")].status"
 type MountTarget struct {

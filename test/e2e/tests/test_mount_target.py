@@ -16,7 +16,7 @@
 Tests cover the full MountTarget lifecycle:
 - Create with required fields (fileSystemID, subnetID)
 - Wait for available status (ACK.ResourceSynced=True)
-- Verify status fields populated (mountTargetID, status, networkInterfaceID, vpcID, availabilityZoneID)
+- Verify status fields populated (id, status, networkInterfaceID, vpcID, availabilityZoneID)
 - Update securityGroups, verify UpdateMountTarget called
 - Delete MountTarget, verify cleanup
 
@@ -73,8 +73,8 @@ def _get_mount_target_status_field(ref, field):
 
 
 def _get_mount_target_id(ref):
-    """Get the mountTargetID from the CR status."""
-    return _get_mount_target_status_field(ref, "mountTargetID")
+    """Get the id from the CR status."""
+    return _get_mount_target_status_field(ref, "id")
 
 
 def _get_aws_mount_target(s3files_client, mount_target_id):
@@ -88,7 +88,7 @@ def _get_aws_mount_target(s3files_client, mount_target_id):
 def _get_aws_mount_target_security_groups(s3files_client, mount_target_id):
     """Get the security groups for a mount target from AWS."""
     try:
-        resp = s3files_client.describe_mount_target_security_groups(
+        resp = s3files_client.get_mount_target(
             mountTargetId=mount_target_id,
         )
         return resp.get("securityGroups", [])
@@ -103,6 +103,7 @@ def simple_mount_target(s3files_client):
 
     replacements = _get_replacements()
     replacements["MOUNT_TARGET_NAME"] = resource_name
+    replacements["SUBNET_ID"] = REPLACEMENT_VALUES["SUBNET_ID"]
 
     resource_data = load_s3files_resource(
         "mount_target",
@@ -137,6 +138,7 @@ def mount_target_with_sg(s3files_client):
 
     replacements = _get_replacements()
     replacements["MOUNT_TARGET_NAME"] = resource_name
+    replacements["SUBNET_ID"] = REPLACEMENT_VALUES["SUBNET_ID_2"]
 
     resource_data = load_s3files_resource(
         "mount_target_with_sg",
@@ -183,7 +185,7 @@ class TestMountTarget:
         assert cr is not None
 
         status = cr.get("status", {})
-        assert status.get("mountTargetID") is not None, "mountTargetID not populated"
+        assert status.get("id") is not None, "id not populated"
         assert status.get("status") == "available", \
             f"Expected available, got {status.get('status')}"
         assert status.get("networkInterfaceID") is not None, "networkInterfaceID not populated"
@@ -191,7 +193,7 @@ class TestMountTarget:
         assert status.get("availabilityZoneID") is not None, "availabilityZoneID not populated"
 
         # Verify the mount target exists in AWS
-        mount_target_id = status["mountTargetID"]
+        mount_target_id = status["id"]
         aws_mt = _get_aws_mount_target(s3files_client, mount_target_id)
         assert aws_mt is not None, "MountTarget not found in AWS"
 
@@ -205,7 +207,7 @@ class TestMountTarget:
         condition.assert_synced(ref)
 
         mount_target_id = _get_mount_target_id(ref)
-        assert mount_target_id is not None, "mountTargetID not populated"
+        assert mount_target_id is not None, "id not populated"
 
         # Patch securityGroups to use SG2 instead of SG1
         resources = get_bootstrap_resources()
@@ -231,6 +233,7 @@ class TestMountTarget:
 
         replacements = _get_replacements()
         replacements["MOUNT_TARGET_NAME"] = resource_name
+        replacements["SUBNET_ID"] = REPLACEMENT_VALUES["SUBNET_ID_3"]
 
         resource_data = load_s3files_resource(
             "mount_target",
@@ -251,7 +254,7 @@ class TestMountTarget:
         condition.assert_synced(ref)
 
         cr = k8s.get_resource(ref)
-        mount_target_id = cr["status"]["mountTargetID"]
+        mount_target_id = cr["status"]["id"]
 
         # Verify mount target exists in AWS
         aws_mt = _get_aws_mount_target(s3files_client, mount_target_id)
