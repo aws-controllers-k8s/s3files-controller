@@ -16,7 +16,7 @@
 Tests cover the full MountTarget lifecycle:
 - Create with required fields (fileSystemID, subnetID)
 - Wait for available status (ACK.ResourceSynced=True)
-- Verify status fields populated (mountTargetID, lifeCycleState, networkInterfaceID, vpcID, availabilityZoneID)
+- Verify status fields populated (mountTargetID, status, networkInterfaceID, vpcID, availabilityZoneID)
 - Update securityGroups, verify UpdateMountTarget called
 - Delete MountTarget, verify cleanup
 
@@ -184,8 +184,8 @@ class TestMountTarget:
 
         status = cr.get("status", {})
         assert status.get("mountTargetID") is not None, "mountTargetID not populated"
-        assert status.get("lifeCycleState") == "available", \
-            f"Expected available, got {status.get('lifeCycleState')}"
+        assert status.get("status") == "available", \
+            f"Expected available, got {status.get('status')}"
         assert status.get("networkInterfaceID") is not None, "networkInterfaceID not populated"
         assert status.get("vpcID") is not None, "vpcID not populated"
         assert status.get("availabilityZoneID") is not None, "availabilityZoneID not populated"
@@ -270,7 +270,7 @@ class TestMountTarget:
             aws_mt = _get_aws_mount_target(s3files_client, mount_target_id)
             if aws_mt is None:
                 return
-            lifecycle = aws_mt.get("lifeCycleState", aws_mt.get("status", ""))
+            lifecycle = aws_mt.get("status", "")
             if lifecycle.lower() == "deleted":
                 return
 

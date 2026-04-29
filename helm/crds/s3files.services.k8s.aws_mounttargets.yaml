@@ -18,11 +18,8 @@ spec:
     - jsonPath: .status.mountTargetID
       name: MOUNTTARGETID
       type: string
-    - jsonPath: .spec.fileSystemID
-      name: FILESYSTEMID
-      type: string
-    - jsonPath: .status.lifeCycleState
-      name: LIFECYCLE
+    - jsonPath: .status.status
+      name: STATUS
       type: string
     - jsonPath: .status.conditions[?(@.type=="ACK.ResourceSynced")].status
       name: Synced
@@ -59,9 +56,6 @@ spec:
 
                   Regex Pattern: `^(arn:aws[-a-z]*:s3files:[0-9a-z-:]+:file-system/fs-[0-9a-f]{17,40}|fs-[0-9a-f]{17,40})$`
                 type: string
-                x-kubernetes-validations:
-                - message: Value is immutable once set
-                  rule: self == oldSelf
               fileSystemRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -85,9 +79,6 @@ spec:
                   used. The IP address type must match the IP configuration of the specified
                   subnet.
                 type: string
-                x-kubernetes-validations:
-                - message: Value is immutable once set
-                  rule: self == oldSelf
               ipv4Address:
                 description: |-
                   A specific IPv4 address to assign to the mount target. If not specified and
@@ -97,9 +88,6 @@ spec:
 
                   Regex Pattern: `^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`
                 type: string
-                x-kubernetes-validations:
-                - message: Value is immutable once set
-                  rule: self == oldSelf
               ipv6Address:
                 description: |-
                   A specific IPv6 address to assign to the mount target. If not specified and
@@ -107,9 +95,6 @@ spec:
                   the subnet's available IPv6 address range. The address must be within the
                   subnet's IPv6 CIDR block and not already in use.
                 type: string
-                x-kubernetes-validations:
-                - message: Value is immutable once set
-                  rule: self == oldSelf
               securityGroupRefs:
                 items:
                   description: "AWSResourceReferenceWrapper provides a wrapper around
@@ -148,9 +133,6 @@ spec:
 
                   Regex Pattern: `^subnet-[0-9a-f]{8,40}$`
                 type: string
-                x-kubernetes-validations:
-                - message: Value is immutable once set
-                  rule: self == oldSelf
               subnetRef:
                 description: "AWSResourceReferenceWrapper provides a wrapper around
                   *AWSResourceReference\ntype to provide more user friendly syntax
@@ -243,8 +225,6 @@ spec:
                   - type
                   type: object
                 type: array
-              lifeCycleState:
-                type: string
               mountTargetID:
                 description: |-
                   The ID of the mount target, assigned by S3 Files. This ID is used to reference
@@ -262,6 +242,14 @@ spec:
                   The Amazon Web Services account ID of the mount target owner.
 
                   Regex Pattern: `^(\d{12})|(\d{4}-{4}-\d{4})$`
+                type: string
+              status:
+                description: |-
+                  The lifecycle state of the mount target. Valid values are: AVAILABLE (the
+                  mount target is available for use), CREATING (the mount target is being created),
+                  DELETING (the mount target is being deleted), DELETED (the mount target has
+                  been deleted), or ERROR (the mount target is in an error state), or UPDATING
+                  (the mount target is being updated).
                 type: string
               statusMessage:
                 description: |-

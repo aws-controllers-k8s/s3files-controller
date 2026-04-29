@@ -1,19 +1,10 @@
 
-	// --- Populate LifeCycleState from GetMountTarget response ---
-	// The Status field in the API response conflicts with the Kubernetes
-	// Status subresource, so it's in ignore.field_paths. We manually map
-	// the LifeCycleState here from the resp variable (in scope from sdkFind).
-	{
-		lifecycleState := string(resp.Status)
-		ko.Status.LifeCycleState = &lifecycleState
-	}
-
 	// --- Terminal condition on error lifecycle state ---
 	// The synced.when config handles setting Synced=False for non-available
 	// states, but it does not set ACK.Terminal for the "error" lifecycle
-	// state. This hook sets Terminal=True when the mount target is in error
-	// state, and clears it otherwise.
-	if ko.Status.LifeCycleState != nil && *ko.Status.LifeCycleState == "error" {
+	// state. The error state is unrecoverable — the user must delete and
+	// recreate the resource.
+	if ko.Status.Status != nil && *ko.Status.Status == "error" {
 		msg := "MountTarget is in error state"
 		if ko.Status.StatusMessage != nil {
 			msg = *ko.Status.StatusMessage

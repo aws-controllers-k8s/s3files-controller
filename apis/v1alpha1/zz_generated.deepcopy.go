@@ -615,11 +615,6 @@ func (in *MountTargetStatus) DeepCopyInto(out *MountTargetStatus) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.LifeCycleState != nil {
-		in, out := &in.LifeCycleState, &out.LifeCycleState
-		*out = new(string)
-		**out = **in
-	}
 	if in.MountTargetID != nil {
 		in, out := &in.MountTargetID, &out.MountTargetID
 		*out = new(string)
@@ -632,6 +627,11 @@ func (in *MountTargetStatus) DeepCopyInto(out *MountTargetStatus) {
 	}
 	if in.OwnerID != nil {
 		in, out := &in.OwnerID, &out.OwnerID
+		*out = new(string)
+		**out = **in
+	}
+	if in.Status != nil {
+		in, out := &in.Status, &out.Status
 		*out = new(string)
 		**out = **in
 	}

@@ -27,13 +27,11 @@ type MountTargetSpec struct {
 	// mount target for.
 	//
 	// Regex Pattern: `^(arn:aws[-a-z]*:s3files:[0-9a-z-:]+:file-system/fs-[0-9a-f]{17,40}|fs-[0-9a-f]{17,40})$`
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	FileSystemID  *string                                  `json:"fileSystemID,omitempty"`
 	FileSystemRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"fileSystemRef,omitempty"`
 	// The IP address type for the mount target. If not specified, IPV4_ONLY is
 	// used. The IP address type must match the IP configuration of the specified
 	// subnet.
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	IPAddressType *string `json:"ipAddressType,omitempty"`
 	// A specific IPv4 address to assign to the mount target. If not specified and
 	// the IP address type supports IPv4, an address is automatically assigned from
@@ -41,13 +39,11 @@ type MountTargetSpec struct {
 	// subnet's CIDR block and not already in use.
 	//
 	// Regex Pattern: `^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$`
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	IPv4Address *string `json:"ipv4Address,omitempty"`
 	// A specific IPv6 address to assign to the mount target. If not specified and
 	// the IP address type supports IPv6, an address is automatically assigned from
 	// the subnet's available IPv6 address range. The address must be within the
 	// subnet's IPv6 CIDR block and not already in use.
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	IPv6Address       *string                                    `json:"ipv6Address,omitempty"`
 	SecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"securityGroupRefs,omitempty"`
 	// An array of VPC security group IDs to associate with the mount target's network
@@ -62,7 +58,6 @@ type MountTargetSpec struct {
 	// will be located.
 	//
 	// Regex Pattern: `^subnet-[0-9a-f]{8,40}$`
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable once set"
 	SubnetID  *string                                  `json:"subnetID,omitempty"`
 	SubnetRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"subnetRef,omitempty"`
 }
@@ -86,8 +81,6 @@ type MountTargetStatus struct {
 	// Amazon Web Services account.
 	// +kubebuilder:validation:Optional
 	AvailabilityZoneID *string `json:"availabilityZoneID,omitempty"`
-	// +kubebuilder:validation:Optional
-	LifeCycleState *string `json:"lifeCycleState,omitempty"`
 	// The ID of the mount target, assigned by S3 Files. This ID is used to reference
 	// the mount target in subsequent API calls.
 	//
@@ -103,6 +96,13 @@ type MountTargetStatus struct {
 	// Regex Pattern: `^(\d{12})|(\d{4}-{4}-\d{4})$`
 	// +kubebuilder:validation:Optional
 	OwnerID *string `json:"ownerID,omitempty"`
+	// The lifecycle state of the mount target. Valid values are: AVAILABLE (the
+	// mount target is available for use), CREATING (the mount target is being created),
+	// DELETING (the mount target is being deleted), DELETED (the mount target has
+	// been deleted), or ERROR (the mount target is in an error state), or UPDATING
+	// (the mount target is being updated).
+	// +kubebuilder:validation:Optional
+	Status *string `json:"status,omitempty"`
 	// Additional information about the mount target status. This field provides
 	// more details when the status is ERROR, or during state transitions.
 	// +kubebuilder:validation:Optional
@@ -116,8 +116,7 @@ type MountTargetStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="MOUNTTARGETID",type=string,priority=0,JSONPath=`.status.mountTargetID`
-// +kubebuilder:printcolumn:name="FILESYSTEMID",type=string,priority=0,JSONPath=`.spec.fileSystemID`
-// +kubebuilder:printcolumn:name="LIFECYCLE",type=string,priority=0,JSONPath=`.status.lifeCycleState`
+// +kubebuilder:printcolumn:name="STATUS",type=string,priority=0,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Synced",type="string",priority=0,JSONPath=".status.conditions[?(@.type==\"ACK.ResourceSynced\")].status"
 type MountTarget struct {
 	metav1.TypeMeta   `json:",inline"`
